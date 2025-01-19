@@ -119,6 +119,10 @@ Go to the project directory.
 cd web-face-recognition.
 ```
 
+Install CMake from this site.
+[CMake](https://cmake.org/download/).
+
+
 Install dependencies.
 ```bash
 pip install -r requirements.txt
