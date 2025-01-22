@@ -69,7 +69,7 @@ document.getElementById('uploadButton').addEventListener('click', function () {
         })
         .then(response => response.json())
         .then(data => {
-            if (data.message === 'Pengguna berhasil ditambahkan!') {
+            if (data.message === 'User added successfully!') {
                 showToast('successToast');
                 document.getElementById('image').value = '';
                 document.getElementById('gender').value = '';
@@ -201,3 +201,30 @@ function updateUserDataTable(data) {
 
 // Event listener to capture face and fetch recognized data
 document.getElementById('captureButtonML').addEventListener('click', fetchRecognizedData);
+
+// Handle YOLOv8 image classification form submission
+document.getElementById('yoloForm').addEventListener('submit', function (event) {
+    event.preventDefault();
+    const formData = new FormData(this);
+    fetch('/classify_image', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            showToast('errorToast');
+        } else {
+            const resultDiv = document.getElementById('yoloResult');
+            resultDiv.innerHTML = `
+                <h5>Classification Result:</h5>
+                <img src="data:image/jpeg;base64,${data.image}" class="img-fluid" alt="Classified Image">
+                <ul>
+                    ${data.classifications.map(c => `<li>Name: ${c.name}, Confidence: ${c.confidence}%</li>`).join('')}
+                </ul>
+            `;
+            showToast('successToast');
+        }
+    })
+    .catch(() => showToast('errorToast'));
+});

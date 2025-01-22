@@ -92,50 +92,58 @@
             </div>
         </div>
 
+        <div class="container mt-5">
+            <h1 class="text-center mb-4">Recognized Face</h1>
+            <div class="table-responsive">
+                <table id="user_data_table" class="table table-striped table-bordered table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-center mb-2">Name</th>
+                            <th class="text-center mb-2">Gender</th>
+                            <th class="text-center mb-2">Domicile</th>
+                            <th class="text-center mb-2">Confidence</th>
+                        </tr>
+                    </thead>
+                    <tbody id="user_data_body">
+                        <!-- Data will be inserted here by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="switch-container">
+                <label class="switch">
+                    <input type="checkbox" id="captureButtonML">
+                    <span class="slider"></span>
+                </label>
+                <span id="switchLabel">Auto-Refresh: On</span>
+            </div>
+            <button id="captureFaceButton" class="btn btn-primary mt-3" style="display: none;">Capture Face</button>
+        </div>
+
+        <!-- YOLOv8 Image Classification -->
+        <div class="row g-3 mt-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">YOLOv8 Image Classification</div>
+                    <div class="card-body">
+                        <form id="yoloForm" action="/classify_image" method="POST" enctype="multipart/form-data">
+                            <div class="mb-3">
+                                <label for="yoloImage" class="form-label">Upload Image</label>
+                                <input type="file" class="form-control" id="yoloImage" name="yoloImage" accept="image/*"
+                                    required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Classify Image</button>
+                        </form>
+                        <div id="yoloResult" class="mt-4">
+                            <!-- Classification result will be displayed here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Debug Table Button -->
         <button type="button" id="debugTableButton" class="btn btn-info mt-3">Lihat Debug Table</button>
     </div>
-
-    <!DOCTYPE html>
-    <html lang="en">
-
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Face Recognition</title>
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    </head>
-
-    <div class="container mt-5">
-        <h1 class="text-center mb-4">Recognized Face</h1>
-        <div class="table-responsive">
-            <table id="user_data_table" class="table table-striped table-bordered table-hover">
-                <thead class="table-light">
-                    <tr>
-                        <th class="text-center mb-2">Name</th>
-                        <th class="text-center mb-2">Gender</th>
-                        <th class="text-center mb-2">Domicile</th>
-                        <th class="text-center mb-2">Confidence</th>
-                    </tr>
-                </thead>
-                <tbody id="user_data_body">
-                    <!-- Data will be inserted here by JavaScript -->
-                </tbody>
-            </table>
-        </div>
-        <div class="switch-container">
-            <label class="switch">
-                <input type="checkbox" id="captureButtonML">
-                <span class="slider"></span>
-            </label>
-            <span id="switchLabel">Auto-Refresh: On</span>
-        </div>
-        <button id="captureFaceButton" class="btn btn-primary mt-3" style="display: none;">Capture Face</button>
-    </div>
-
-
-    <!-- ------------------------------------------------------------------------------------------------------------------------  -->
-
 
     <!-- Loading Overlay -->
     <div class="loading-overlay" id="loadingOverlay">
