@@ -4,6 +4,17 @@ A Simple Web-Based Face Recognition System with CRUD functionality allows users 
 
 The system uses a webcam to capture facial images, processes them for recognition, and then associates the recognized face with relevant data from a database. The implementation supports seamless interaction with the backend, enabling users to manage images and access personalized data based on facial recognition, ensuring both dynamic data management and secure authentication.
 
+## Changelog
+
+### v1.1.0
+
+- Added newest yolo model (yolo11m)
+- Live feed to count how many cars are detected with yolo model
+
+### Upcoming
+
+- realtime with camera image classification
+
 ## Features
 
 - **Access to Webcams and Uploading Images**  
