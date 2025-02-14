@@ -562,8 +562,8 @@ def gen_car_count_feed():
         raise RuntimeError("Cannot open the public camera stream")
 
     vehicle_count = 0
-    prev_centers = []  # List of [center_x, center_y] from previous frame
-    DIST_THRESHOLD = 50  # Distance threshold in pixels
+    prev_centers = []  # List of [center_x, center_y] 
+    DIST_THRESHOLD = 50  # Distance threshold pixels
 
     while True:
         ret, frame = cap.read()
@@ -571,13 +571,13 @@ def gen_car_count_feed():
             break
 
         height, width = frame.shape[:2]
-
-        # Define a horizontal detection band between blue lines
+        
+        # garis biru border untuk range deteksi
         y_top = int(0.4 * height)
         y_bottom = int(0.6 * height)
         roi_boxes = [(0, y_top, width, y_bottom)]
         for (rx1, ry1, rx2, ry2) in roi_boxes:
-            cv2.rectangle(frame, (rx1, ry1), (rx2, ry2), (255, 0, 255), 2)  # Magenta box
+            cv2.rectangle(frame, (rx1, ry1), (rx2, ry2), (255, 0, 255), 2) 
 
         results = model(frame, conf=0.25)
         current_centers = []
@@ -593,7 +593,7 @@ def gen_car_count_feed():
                         x1, y1, x2, y2 = map(int, xy)
                         center_x, center_y = (x1 + x2) // 2, (y1 + y2) // 2
 
-                        # Check if center is within detection band
+                        # cek apakah pusat berada dalam range deteksi
                         if any(ry1 <= center_y <= ry2 for (_, ry1, _, ry2) in roi_boxes):
                             duplicate = False
                             for prev_center in prev_centers:
@@ -627,7 +627,6 @@ def gen_car_count_feed():
 def car_count_feed():
     return Response(gen_car_count_feed(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
-# Optional: New route to render the car count page
 @app.route('/car_count')
 def car_count():
     return render_template('car_count.html')
