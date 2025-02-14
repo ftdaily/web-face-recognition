@@ -512,7 +512,10 @@ def retrain_faces():
     return jsonify({'message': 'Faces retrained successfully!'})
 
 # Load YOLOv8 model
-model = YOLO('yolov8n.pt')
+# model = YOLO('yolov8n.pt')
+
+# Load newest model 
+model = YOLO('yolo11m.pt')
 
 @app.route('/classify_image', methods=['POST'])
 def classify_image():
@@ -524,7 +527,7 @@ def classify_image():
     with open(temp_image_path, 'wb') as f:
         f.write(img)
 
-    results = model(temp_image_path, conf=0.25)
+    results = model(temp_image_path, conf=0.5)
     if results:
         result = results[0]
         if result.boxes:
@@ -550,6 +553,84 @@ def classify_image():
             return jsonify({'error': 'No objects detected'}), 500
     else:
         return jsonify({'error': 'Classification failed'}), 500
+    
+import math
+
+def gen_car_count_feed():
+    cap = cv2.VideoCapture("http://103.95.42.254:84/mjpg/video.mjpg?camera=1&timestamp=1739522088479")
+    if not cap.isOpened():
+        raise RuntimeError("Cannot open the public camera stream")
+
+    vehicle_count = 0
+    prev_centers = []  # List of [center_x, center_y] from previous frame
+    DIST_THRESHOLD = 50  # Distance threshold in pixels
+
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
+
+        height, width = frame.shape[:2]
+
+        # Define a horizontal detection band between blue lines
+        y_top = int(0.4 * height)
+        y_bottom = int(0.6 * height)
+        roi_boxes = [(0, y_top, width, y_bottom)]
+        for (rx1, ry1, rx2, ry2) in roi_boxes:
+            cv2.rectangle(frame, (rx1, ry1), (rx2, ry2), (255, 0, 255), 2)  # Magenta box
+
+        results = model(frame, conf=0.25)
+        current_centers = []
+        new_detections = 0
+
+        for result in results:
+            if result.boxes:
+                for box in result.boxes:
+                    class_id = int(box.cls)
+                    label = result.names[class_id].lower()
+                    if label in ["bus", "truck", "car", "motorcycle"]:
+                        xy = box.xyxy.tolist()[0]
+                        x1, y1, x2, y2 = map(int, xy)
+                        center_x, center_y = (x1 + x2) // 2, (y1 + y2) // 2
+
+                        # Check if center is within detection band
+                        if any(ry1 <= center_y <= ry2 for (_, ry1, _, ry2) in roi_boxes):
+                            duplicate = False
+                            for prev_center in prev_centers:
+                                distance = math.hypot(center_x - prev_center[0], center_y - prev_center[1])
+                                if distance < DIST_THRESHOLD:
+                                    duplicate = True
+                                    break
+                            if not duplicate:
+                                new_detections += 1
+                            current_centers.append([center_x, center_y])
+                            cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 0), 2)
+                            cv2.putText(frame, f"{label} {box.conf[0]:.2f}", (x1, y1 - 10),
+                                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 0), 2)
+
+        vehicle_count += new_detections
+        prev_centers = current_centers[:]
+
+        cv2.putText(frame, f"Vehicle Count: {vehicle_count}", (10, 30),
+                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+
+        ret, jpeg = cv2.imencode('.jpg', frame)
+        if not ret:
+            break
+
+        yield (b'--frame\r\n'
+               b'Content-Type: image/jpeg\r\n\r\n' + jpeg.tobytes() + b'\r\n\r\n')
+
+    cap.release()
+
+@app.route('/car_count_feed')
+def car_count_feed():
+    return Response(gen_car_count_feed(), mimetype='multipart/x-mixed-replace; boundary=frame')
+
+# Optional: New route to render the car count page
+@app.route('/car_count')
+def car_count():
+    return render_template('car_count.html')
 
 if __name__ == '__main__':
     print("Loading known faces from the database...")
