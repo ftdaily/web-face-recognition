@@ -95,6 +95,12 @@ document.getElementById('debugTableButton').addEventListener('click', function (
     window.location.href = "/debug_table";
 });
 
+// Redirect to car_count
+document.getElementById('carCountDirect').addEventListener('click', function () {
+    window.location.href = "/car_count";
+});
+
+
 let autoRefreshEnabled = true;  // Flag to enable or disable automatic refresh
 
 // Function to fetch recognized data and update the table
