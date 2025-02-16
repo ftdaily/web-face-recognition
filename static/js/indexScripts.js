@@ -100,6 +100,11 @@ document.getElementById('carCountDirect').addEventListener('click', function () 
     window.location.href = "/car_count";
 });
 
+// Redirect to image classification
+document.getElementById('imageClassification').addEventListener('click', function () {
+    window.location.href = "/realtime_view";
+});
+
 
 let autoRefreshEnabled = true;  // Flag to enable or disable automatic refresh
 

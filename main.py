@@ -555,6 +555,7 @@ def classify_image():
         return jsonify({'error': 'Classification failed'}), 500
     
 import math
+model = YOLO('yolov8n.pt')
 
 def gen_car_count_feed():
     cap = cv2.VideoCapture("http://103.95.42.254:84/mjpg/video.mjpg?camera=1&timestamp=1739522088479")
@@ -630,6 +631,48 @@ def car_count_feed():
 @app.route('/car_count')
 def car_count():
     return render_template('car_count.html')
+
+yolo11_model = YOLO('yolo11m.pt')
+
+def gen_realtime_feed():
+    cap = cv2.VideoCapture(0)  # using default camera s
+    if not cap.isOpened():
+        raise RuntimeError("Cannot open the camera")
+    
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
+        
+        results = yolo11_model(frame, conf=0.7)
+        if results and results[0].boxes:
+            for box in results[0].boxes:
+                class_id = int(box.cls)
+                name = results[0].names[class_id]
+                confidence = float(box.conf) * 100
+                x1, y1, x2, y2 = map(int, box.xyxy.tolist()[0])
+                cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+                cv2.putText(frame, f"{name} {confidence:.2f}%", (x1, max(y1 - 10, 0)),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
+        
+        ret, jpeg = cv2.imencode('.jpg', frame)
+        if not ret:
+            break
+        yield (b'--frame\r\n'
+               b'Content-Type: image/jpeg\r\n\r\n' + jpeg.tobytes() + b'\r\n\r\n')
+    
+    cap.release()
+
+@app.route('/realtime_feed')
+def realtime_feed():
+    """Stream realtime camera feed with YOLO11 classification."""
+    return Response(gen_realtime_feed(), mimetype='multipart/x-mixed-replace; boundary=frame')
+
+# New route to serve the realtime feed UI
+@app.route('/realtime_view')
+def realtime_view():
+    """Render the realtime feed UI."""
+    return render_template('realtime_feed.html')
 
 if __name__ == '__main__':
     print("Loading known faces from the database...")

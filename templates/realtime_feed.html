@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Realtime Feed</title>
+    <style>
+        body {
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+
+        img {
+            max-width: 90%;
+            height: auto;
+            border: 2px solid #333;
+        }
+    </style>
+</head>
+
+<body>
+    <a href="/" class="btn btn-primary mb-3">Home</a>
+    <h1>Realtime YOLO11 Feed</h1>
+    <img src="{{ url_for('realtime_feed') }}" alt="Realtime Feed">
+</body>
+
+</html>
