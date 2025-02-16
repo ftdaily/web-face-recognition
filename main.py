@@ -395,6 +395,63 @@ captured_data = {
     "confidence": 0.0
 }
 
+# Debug Purposes
+# def gen(selected_camera_index):
+#     """Menghasilkan frame video dari kamera yang dipilih."""
+#     global captured_data
+#     camera = cv2.VideoCapture(selected_camera_index)
+
+#     if not camera.isOpened():
+#         raise RuntimeError(f"Cannot open camera index {selected_camera_index}")
+
+#     while True:
+#         ret, frame = camera.read()
+#         if not ret:
+#             break
+
+#         rgb_frame = frame[:, :, ::-1]
+#         small_frame = cv2.resize(rgb_frame, (0, 0), fx=0.25, fy=0.25)
+#         face_locations = face_recognition.face_locations(small_frame)
+#         face_encodings = face_recognition.face_encodings(small_frame, face_locations)
+
+#         capturedName = "Unknown"
+#         gender = "Unknown"
+#         confidence = 0.0
+
+#         for (top, right, bottom, left), face_encoding in zip(face_locations, face_encodings):
+#             top *= 4
+#             right *= 4
+#             bottom *= 4
+#             left *= 4
+
+#             matches = face_recognition.compare_faces(known_face_encodings, face_encoding)
+#             face_distances = face_recognition.face_distance(known_face_encodings, face_encoding)
+
+#             best_match_index = np.argmin(face_distances)
+#             confidence = 1 - face_distances[best_match_index]
+
+#             if confidence >= 0.5 and matches[best_match_index]:
+#                 capturedName = known_face_names[best_match_index]
+
+#             gender = predict_gender(frame)
+
+#             captured_data['capturedName'] = capturedName
+#             captured_data['confidence'] = confidence
+
+#             cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
+#             cv2.putText(frame, f"{capturedName}", (left + 5, top - 30), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
+#             cv2.putText(frame, f"Confidence: {confidence*100:.2f}%", (left + 5, top - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
+#             cv2.putText(frame, f"Gender: {gender}", (left + 5, bottom + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
+
+#         ret, jpeg = cv2.imencode('.jpg', frame)
+#         if not ret:
+#             break
+
+#         yield (b'--frame\r\n'
+#                b'Content-Type: image/jpeg\r\n\r\n' + jpeg.tobytes() + b'\r\n\r\n')
+
+#     camera.release()
+
 def gen(selected_camera_index):
     """Menghasilkan frame video dari kamera yang dipilih."""
     global captured_data
@@ -426,11 +483,12 @@ def gen(selected_camera_index):
             matches = face_recognition.compare_faces(known_face_encodings, face_encoding)
             face_distances = face_recognition.face_distance(known_face_encodings, face_encoding)
 
-            best_match_index = np.argmin(face_distances)
-            confidence = 1 - face_distances[best_match_index]
+            if face_distances.size > 0:
+                best_match_index = np.argmin(face_distances)
+                confidence = 1 - face_distances[best_match_index]
 
-            if confidence >= 0.5 and matches[best_match_index]:
-                capturedName = known_face_names[best_match_index]
+                if confidence >= 0.5 and matches[best_match_index]:
+                    capturedName = known_face_names[best_match_index]
 
             gender = predict_gender(frame)
 
@@ -555,7 +613,7 @@ def classify_image():
         return jsonify({'error': 'Classification failed'}), 500
     
 import math
-model = YOLO('yolov8n.pt')
+# model = YOLO('yolov8n.pt')
 
 def gen_car_count_feed():
     cap = cv2.VideoCapture("http://103.95.42.254:84/mjpg/video.mjpg?camera=1&timestamp=1739522088479")
